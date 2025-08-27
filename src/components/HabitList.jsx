@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Check, Clock, Target, TrendingUp, TrendingDown, Undo2, Calendar } from 'lucide-react'
-import { getHabits, logHabit, unlogHabit, getAllHabitsProgress } from '../lib/localStorage'
+import { Plus, Check, Clock, Target, TrendingUp, TrendingDown, Undo2, Calendar, Trash2, X } from 'lucide-react'
+import { getHabits, logHabit, unlogHabit, getAllHabitsProgress, deleteHabit } from '../lib/localStorage'
 import { format, startOfDay, endOfDay } from 'date-fns'
 import Logo from './Logo'
 import DatePickerModal from './DatePickerModal'
@@ -14,6 +14,8 @@ export default function HabitList() {
   const [loggingHabit, setLoggingHabit] = useState(null)
   const [unloggingHabit, setUnloggingHabit] = useState(null)
   const [datePickerModal, setDatePickerModal] = useState({ isOpen: false, habit: null })
+  const [deletingHabit, setDeletingHabit] = useState(null)
+  const [expandedHabit, setExpandedHabit] = useState(null)
   const longPressTimer = useRef(null)
 
   useEffect(() => {
@@ -67,6 +69,26 @@ export default function HabitList() {
       handleLogHabit(datePickerModal.habit.id, selectedDate)
     }
     setDatePickerModal({ isOpen: false, habit: null })
+  }
+
+  const handleDeleteHabit = async (habitId) => {
+    if (deletingHabit === habitId) return
+    
+    setDeletingHabit(habitId)
+    try {
+      await deleteHabit(habitId)
+      await loadHabitsAndProgress() // Refresh data
+      setExpandedHabit(null) // Close expanded view
+    } catch (error) {
+      console.error('Error deleting habit:', error)
+      alert('Failed to delete habit. Please try again.')
+    } finally {
+      setDeletingHabit(null)
+    }
+  }
+
+  const toggleHabitExpanded = (habitId) => {
+    setExpandedHabit(expandedHabit === habitId ? null : habitId)
   }
 
   const handleUnlogHabit = async (habitId) => {
@@ -168,6 +190,8 @@ export default function HabitList() {
             const ProgressIcon = getProgressIcon(progress)
             const isLogging = loggingHabit === habit.id
             const isUnlogging = unloggingHabit === habit.id
+            const isDeleting = deletingHabit === habit.id
+            const isExpanded = expandedHabit === habit.id
             const todayLogCount = getTodayLogCount(habit.id, progress.logs || [])
             
             return (
@@ -178,9 +202,24 @@ export default function HabitList() {
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0 pr-3">
-                      <h3 className="font-medium text-gray-900 leading-5 mb-1">
-                        {habit.title}
-                      </h3>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => toggleHabitExpanded(habit.id)}
+                          className="flex-1 text-left tap-highlight-none"
+                        >
+                          <h3 className="font-medium text-gray-900 leading-5 mb-1">
+                            {habit.title}
+                          </h3>
+                        </button>
+                        {isExpanded && (
+                          <button
+                            onClick={() => setExpandedHabit(null)}
+                            className="p-1 text-gray-400 hover:text-gray-600 tap-highlight-none"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
                       <div className="flex items-center space-x-3 text-xs text-gray-500">
                         <span>{getFrequencyDisplay(habit)}</span>
                         {progress.completedCount !== undefined && (
@@ -264,7 +303,7 @@ export default function HabitList() {
                   )}
                 </div>
 
-                {progress.logs && progress.logs.length > 0 && (
+                {progress.logs && progress.logs.length > 0 && !isExpanded && (
                   <div className="px-4 pb-4">
                     <div className="text-xs text-gray-500 mb-2">Recent completions:</div>
                     <div className="flex flex-wrap gap-1">
@@ -280,6 +319,58 @@ export default function HabitList() {
                         <span className="px-2 py-1 text-gray-500 text-xs">
                           +{progress.logs.length - 5} more
                         </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {isExpanded && (
+                  <div className="px-4 pb-4 border-t border-gray-100 pt-4">
+                    <div className="space-y-3">
+                      {habit.description && (
+                        <div>
+                          <div className="text-xs font-medium text-gray-700 mb-1">Description:</div>
+                          <div className="text-sm text-gray-600">{habit.description}</div>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-medium text-gray-700">Actions:</div>
+                        <button
+                          onClick={() => handleDeleteHabit(habit.id)}
+                          disabled={isDeleting}
+                          className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors tap-highlight-none disabled:opacity-50"
+                        >
+                          {isDeleting ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                              <span>Deleting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 size={16} />
+                              <span>Delete Habit</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      
+                      {progress.logs && progress.logs.length > 0 && (
+                        <div>
+                          <div className="text-xs font-medium text-gray-700 mb-2">All completions ({progress.logs.length}):</div>
+                          <div className="max-h-32 overflow-y-auto space-y-1">
+                            {progress.logs.map((log) => (
+                              <div key={log.id} className="flex justify-between items-center py-1">
+                                <span className="text-sm text-gray-600">
+                                  {format(new Date(log.completed_at), 'EEE, MMM d, yyyy')}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {format(new Date(log.completed_at), 'h:mm a')}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
