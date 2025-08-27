@@ -1,0 +1,5 @@
+# SPA redirect - must be last
+/*    /index.html   200
+
+# Asset handling
+/assets/*  /assets/:splat  200
