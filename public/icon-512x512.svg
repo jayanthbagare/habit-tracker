@@ -1,0 +1,39 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgPattern1" cx="25%" cy="25%" r="50%">
+      <stop offset="0%" stop-color="rgba(156,163,175,0.1)"/>
+      <stop offset="50%" stop-color="transparent"/>
+    </radialGradient>
+    <radialGradient id="bgPattern2" cx="75%" cy="75%" r="50%">
+      <stop offset="0%" stop-color="rgba(156,163,175,0.1)"/>
+      <stop offset="50%" stop-color="transparent"/>
+    </radialGradient>
+    <linearGradient id="cornerAccent" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(156,163,175,0.6)"/>
+      <stop offset="60%" stop-color="transparent"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background -->
+  <rect width="512" height="512" rx="64" fill="#111827"/>
+  
+  <!-- Background patterns -->
+  <rect width="512" height="512" rx="64" fill="url(#bgPattern1)"/>
+  <rect width="512" height="512" rx="64" fill="url(#bgPattern2)"/>
+  
+  <!-- Progress circle background -->
+  <circle cx="256" cy="256" r="179" fill="none" stroke="#374151" stroke-width="12"/>
+  
+  <!-- Progress arc (75% complete) -->
+  <circle cx="256" cy="256" r="179" fill="none" stroke="#9ca3af" stroke-width="12" 
+          stroke-dasharray="843 1124" stroke-dashoffset="281" 
+          transform="rotate(-90 256 256)" stroke-linecap="round"/>
+  
+  <!-- Checkmark -->
+  <g stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <polyline points="200,256 240,296 320,216" transform="translate(0,0)"/>
+  </g>
+  
+  <!-- Corner accent -->
+  <path d="M 512,0 L 512,64 L 448,0 Z" fill="url(#cornerAccent)"/>
+</svg>
