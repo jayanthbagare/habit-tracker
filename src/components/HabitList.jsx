@@ -54,7 +54,7 @@ export default function HabitList() {
 
   const handleLongPressStart = (habit) => {
     longPressTimer.current = setTimeout(() => {
-      setDatePickerModal({ isOpen: true, habit })
+      setExpandedHabit(habit.id)
     }, 800) // 800ms long press
   }
 
@@ -303,35 +303,45 @@ export default function HabitList() {
                     </div>
                   )}
                   
-                  <div className="flex space-x-3 mb-4">
-                    <button
-                      onClick={() => handleLogHabit(habit.id)}
-                      disabled={isLogging}
-                      className="flex-1 py-3 px-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors tap-highlight-none"
-                    >
-                      {isLogging ? (
-                        <div className="flex items-center justify-center">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                          Logging...
-                        </div>
-                      ) : (
-                        'Mark as Done'
-                      )}
-                    </button>
-                    
-                    {todayLogCount > 0 && (
+                  <div className="space-y-3 mb-4">
+                    <div className="flex space-x-3">
                       <button
-                        onClick={() => handleUnlogHabit(habit.id)}
-                        disabled={isUnlogging}
-                        className="px-4 py-3 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors tap-highlight-none"
+                        onClick={() => handleLogHabit(habit.id)}
+                        disabled={isLogging}
+                        className="flex-1 py-3 px-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors tap-highlight-none"
                       >
-                        {isUnlogging ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {isLogging ? (
+                          <div className="flex items-center justify-center">
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                            Logging...
+                          </div>
                         ) : (
-                          <Undo2 size={16} />
+                          'Mark as Done Today'
                         )}
                       </button>
-                    )}
+                      
+                      {todayLogCount > 0 && (
+                        <button
+                          onClick={() => handleUnlogHabit(habit.id)}
+                          disabled={isUnlogging}
+                          className="px-4 py-3 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors tap-highlight-none"
+                        >
+                          {isUnlogging ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Undo2 size={16} />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    
+                    <button
+                      onClick={() => setDatePickerModal({ isOpen: true, habit })}
+                      className="w-full py-2 px-4 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg font-medium transition-colors tap-highlight-none flex items-center justify-center"
+                    >
+                      <Calendar size={16} className="mr-2" />
+                      Log for Past Date
+                    </button>
                   </div>
                   
                   {progress.logs && progress.logs.length > 0 && (
