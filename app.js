@@ -2,6 +2,12 @@ class HabitTracker {
     constructor() {
         this.habits = this.loadHabitsSecurely();
         this.currentScreen = 'track';
+        
+        // Bind methods to preserve 'this' context
+        this.toggleHabit = this.toggleHabit.bind(this);
+        this.renderCurrentScreen = this.renderCurrentScreen.bind(this);
+        this.saveHabits = this.saveHabits.bind(this);
+        
         this.init();
     }
 
@@ -126,9 +132,25 @@ class HabitTracker {
         `;
         
         const toggleButton = document.createElement('button');
+        toggleButton.type = 'button';
         toggleButton.className = `habit-check-btn ${isCompletedToday ? 'completed' : ''}`;
         toggleButton.textContent = isCompletedToday ? '✓' : '○';
-        toggleButton.addEventListener('click', () => this.toggleHabit(habit.id));
+        toggleButton.setAttribute('data-habit-id', habit.id);
+        
+        // Use multiple event binding approaches for better compatibility
+        const clickHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Button clicked, habit ID:', habit.id);
+            try {
+                this.toggleHabit(habit.id);
+            } catch (error) {
+                console.error('Error in toggleHabit:', error);
+            }
+        };
+        
+        toggleButton.addEventListener('click', clickHandler);
+        toggleButton.onclick = clickHandler;
         
         habitElement.querySelector('.habit-progress').appendChild(toggleButton);
         return habitElement;
@@ -382,8 +404,13 @@ class HabitTracker {
     }
 
     toggleHabit(id) {
+        console.log('toggleHabit called with id:', id);
         const habit = this.habits.find(h => h.id === id);
-        if (!habit) return;
+        if (!habit) {
+            console.error('Habit not found:', id);
+            return;
+        }
+        console.log('Found habit:', habit.name);
 
         const today = new Date().toDateString();
         const existingIndex = habit.completions.findIndex(c => 
