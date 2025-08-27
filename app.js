@@ -96,7 +96,11 @@ class HabitTracker {
             return;
         }
 
-        habitsList.innerHTML = todayHabits.map(habit => this.renderHabitItem(habit)).join('');
+        habitsList.innerHTML = '';
+        todayHabits.forEach(habit => {
+            const habitElement = this.renderHabitItem(habit);
+            habitsList.appendChild(habitElement);
+        });
     }
 
     renderHabitItem(habit) {
@@ -127,7 +131,7 @@ class HabitTracker {
         toggleButton.addEventListener('click', () => this.toggleHabit(habit.id));
         
         habitElement.querySelector('.habit-progress').appendChild(toggleButton);
-        return habitElement.outerHTML;
+        return habitElement;
     }
 
     renderHabitsScreen() {
