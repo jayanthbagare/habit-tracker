@@ -1,7 +1,9 @@
 // Test logging at the very start
+alert('JavaScript is running!');
 console.log('=== APP.JS LOADED ===');
 console.log('Current time:', new Date());
 console.log('Location:', window.location.href);
+window.testMessage = 'JavaScript loaded successfully';
 
 class HabitTracker {
     constructor() {
