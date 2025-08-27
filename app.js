@@ -110,11 +110,13 @@ class HabitTracker {
     }
 
     renderHabitItem(habit) {
+        console.log('renderHabitItem called for habit:', habit.name, 'ID:', habit.id);
         const progress = this.getHabitProgress(habit);
         const status = this.getHabitStatus(habit);
         const isCompletedToday = this.isHabitCompletedToday(habit);
         const habitElement = document.createElement('div');
         habitElement.className = 'habit-item';
+        console.log('Created habit element for:', habit.name);
         
         habitElement.innerHTML = `
             <div class="habit-header">
@@ -152,7 +154,17 @@ class HabitTracker {
         toggleButton.addEventListener('click', clickHandler);
         toggleButton.onclick = clickHandler;
         
-        habitElement.querySelector('.habit-progress').appendChild(toggleButton);
+        const progressElement = habitElement.querySelector('.habit-progress');
+        console.log('Found progress element:', !!progressElement);
+        console.log('About to append toggle button for habit:', habit.name);
+        
+        if (progressElement) {
+            progressElement.appendChild(toggleButton);
+            console.log('Toggle button appended for habit:', habit.name);
+        } else {
+            console.error('Could not find .habit-progress element for habit:', habit.name);
+        }
+        
         return habitElement;
     }
 
