@@ -1,0 +1,15 @@
+I want you to build a habit tracker app for me. The tech and functional features are separated as below
+Tech features
+* Should be available on multiple phones to mark habits
+* Should be minimalistic with typography in shades of gray
+* Should be easily hosted on github pages/netlify/s3
+* Should fit on mobile screens
+* Use Supabase to store
+
+Functional features
+* Should give a screen for me to define, daily, weekly, fortnightly, monthly, quarterly and yearly habits
+* Once defined I would log an habit as done, it should evaluate if it meets the timeline as well as count criteria. Eg.. practice guitar 3 times a week. Review investment once in a quarter. 
+* If a habit is not on track, it should remind with notification early on, say for day habits at 9pm, week habits on friday afternoon and so on
+* It should be a simple screen for me to track habits, something I can do very quickly even using a single hand
+* A simple dashboard/report should be available to let me know what my slippages are
+* Dashboard should be shaming in nature
