@@ -1,6 +1,8 @@
 class HabitTracker {
     constructor() {
+        console.log('HabitTracker constructor called');
         this.habits = this.loadHabitsSecurely();
+        console.log('Loaded habits:', this.habits.length);
         this.currentScreen = 'track';
         
         // Bind methods to preserve 'this' context
@@ -8,14 +10,20 @@ class HabitTracker {
         this.renderCurrentScreen = this.renderCurrentScreen.bind(this);
         this.saveHabits = this.saveHabits.bind(this);
         
+        console.log('About to call init()');
         this.init();
+        console.log('Constructor completed');
     }
 
     init() {
+        console.log('init() called');
         this.setupEventListeners();
+        console.log('setupEventListeners completed');
         this.renderCurrentScreen();
+        console.log('renderCurrentScreen completed');
         this.setupNotifications();
         this.scheduleNotificationChecks();
+        console.log('init() completed');
     }
 
     setupEventListeners() {
@@ -685,9 +693,21 @@ class HabitTracker {
 // Initialize the app
 let habitTracker;
 
+console.log('Script loaded, document.readyState:', document.readyState);
+
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded event fired');
     habitTracker = new HabitTracker();
+    console.log('HabitTracker instance created');
 });
+
+// Fallback initialization
+if (document.readyState === 'loading') {
+    console.log('Document still loading, waiting for DOMContentLoaded');
+} else {
+    console.log('Document already loaded, initializing immediately');
+    habitTracker = new HabitTracker();
+}
 
 // Service worker for offline functionality
 if ('serviceWorker' in navigator) {
