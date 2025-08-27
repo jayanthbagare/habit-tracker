@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2d2d2d">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Habit Tracker</h1>
+            <nav>
+                <button id="nav-track" class="nav-btn active">Track</button>
+                <button id="nav-habits" class="nav-btn">Habits</button>
+                <button id="nav-dashboard" class="nav-btn">Dashboard</button>
+            </nav>
+        </header>
+
+        <main id="main-content">
+            <!-- Track Screen -->
+            <div id="track-screen" class="screen active">
+                <div class="habits-list" id="habits-list">
+                    <p class="empty-state">No habits yet. Add some habits to get started!</p>
+                </div>
+            </div>
+
+            <!-- Habits Management Screen -->
+            <div id="habits-screen" class="screen">
+                <div class="screen-header">
+                    <h2>Manage Habits</h2>
+                    <button id="add-habit-btn" class="primary-btn">Add Habit</button>
+                </div>
+                <div id="habits-management" class="habits-management">
+                    <div class="habits-list" id="manage-habits-list">
+                        <p class="empty-state">No habits defined yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Screen -->
+            <div id="dashboard-screen" class="screen">
+                <div class="screen-header">
+                    <h2>Dashboard</h2>
+                </div>
+                <div id="dashboard-content">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>On Track</h3>
+                            <div class="stat-value" id="on-track-count">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Behind</h3>
+                            <div class="stat-value" id="behind-count">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Habits</h3>
+                            <div class="stat-value" id="total-habits">0</div>
+                        </div>
+                    </div>
+                    <div class="slippages" id="slippages-list">
+                        <h3>Current Slippages</h3>
+                        <div class="slippages-content">
+                            <p class="empty-state">No slippages to report!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Habit Modal -->
+    <div id="habit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Habit</h3>
+                <button id="close-modal" class="close-btn">&times;</button>
+            </div>
+            <form id="habit-form">
+                <div class="form-group">
+                    <label for="habit-name">Habit Name</label>
+                    <input type="text" id="habit-name" required placeholder="e.g., Practice Guitar">
+                </div>
+                
+                <div class="form-group">
+                    <label for="habit-frequency">Frequency</label>
+                    <select id="habit-frequency" required>
+                        <option value="">Select frequency</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="fortnightly">Fortnightly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="habit-count">Times per period</label>
+                    <input type="number" id="habit-count" min="1" value="1" required>
+                    <small>How many times per frequency period?</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="habit-description">Description (optional)</label>
+                    <textarea id="habit-description" placeholder="Additional notes about this habit"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancel-habit" class="secondary-btn">Cancel</button>
+                    <button type="submit" class="primary-btn">Add Habit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

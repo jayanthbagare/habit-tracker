@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker Tests</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #f9fafb;
+        }
+        .test-suite {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e5e7eb;
+        }
+        .test-suite h2 {
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        .test {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-left: 4px solid #6b7280;
+            background-color: #f9fafb;
+        }
+        .test.passed {
+            border-left-color: #10b981;
+            background-color: #ecfdf5;
+        }
+        .test.failed {
+            border-left-color: #ef4444;
+            background-color: #fef2f2;
+        }
+        .test-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .test-result {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        .summary {
+            background: #111827;
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .summary h1 {
+            margin: 0 0 1rem 0;
+        }
+        .stats {
+            display: flex;
+            gap: 2rem;
+        }
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        .passed { color: #10b981; }
+        .failed { color: #ef4444; }
+        .console-output {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="summary">
+        <h1>Habit Tracker Test Suite</h1>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="total-tests">0</div>
+                <div class="stat-label">Total Tests</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value passed" id="passed-tests">0</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value failed" id="failed-tests">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="test-results"></div>
+    
+    <div class="console-output" id="console-output"></div>
+
+    <!-- Load the main app code -->
+    <script src="app.js"></script>
+    
+    <script>
+        // Test framework
+        class TestSuite {
+            constructor() {
+                this.tests = [];
+                this.passed = 0;
+                this.failed = 0;
+                this.consoleOutput = [];
+                this.originalConsoleLog = console.log;
+                this.originalConsoleError = console.error;
+                this.setupConsoleCapture();
+            }
+
+            setupConsoleCapture() {
+                const self = this;
+                console.log = function(...args) {
+                    self.consoleOutput.push('[LOG] ' + args.join(' '));
+                    self.originalConsoleLog.apply(console, args);
+                    self.updateConsoleOutput();
+                };
+                console.error = function(...args) {
+                    self.consoleOutput.push('[ERROR] ' + args.join(' '));
+                    self.originalConsoleError.apply(console, args);
+                    self.updateConsoleOutput();
+                };
+            }
+
+            updateConsoleOutput() {
+                const outputDiv = document.getElementById('console-output');
+                outputDiv.textContent = this.consoleOutput.slice(-20).join('\n');
+            }
+
+            assert(condition, message) {
+                if (!condition) {
+                    throw new Error(message || 'Assertion failed');
+                }
+            }
+
+            assertEquals(actual, expected, message) {
+                if (actual !== expected) {
+                    throw new Error(`${message || 'Values not equal'}: expected ${expected}, got ${actual}`);
+                }
+            }
+
+            assertArrayEquals(actual, expected, message) {
+                if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+                    throw new Error(`${message || 'Arrays not equal'}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+                }
+            }
+
+            assertTrue(condition, message) {
+                this.assert(condition === true, message || 'Expected true');
+            }
+
+            assertFalse(condition, message) {
+                this.assert(condition === false, message || 'Expected false');
+            }
+
+            describe(suiteName, testFn) {
+                const suiteDiv = document.createElement('div');
+                suiteDiv.className = 'test-suite';
+                suiteDiv.innerHTML = `<h2>${suiteName}</h2>`;
+                document.getElementById('test-results').appendChild(suiteDiv);
+
+                this.currentSuite = suiteDiv;
+                testFn();
+            }
+
+            it(testName, testFn) {
+                const testDiv = document.createElement('div');
+                testDiv.className = 'test';
+                
+                const testNameDiv = document.createElement('div');
+                testNameDiv.className = 'test-name';
+                testNameDiv.textContent = testName;
+                
+                const testResultDiv = document.createElement('div');
+                testResultDiv.className = 'test-result';
+
+                testDiv.appendChild(testNameDiv);
+                testDiv.appendChild(testResultDiv);
+
+                try {
+                    testFn();
+                    testDiv.classList.add('passed');
+                    testResultDiv.textContent = '✓ Passed';
+                    this.passed++;
+                } catch (error) {
+                    testDiv.classList.add('failed');
+                    testResultDiv.textContent = '✗ Failed: ' + error.message;
+                    this.failed++;
+                    console.error('Test failed:', testName, error);
+                }
+
+                this.currentSuite.appendChild(testDiv);
+                this.updateStats();
+            }
+
+            updateStats() {
+                const total = this.passed + this.failed;
+                document.getElementById('total-tests').textContent = total;
+                document.getElementById('passed-tests').textContent = this.passed;
+                document.getElementById('failed-tests').textContent = this.failed;
+            }
+        }
+
+        // Initialize test framework
+        const test = new TestSuite();
+
+        // Mock localStorage for testing
+        class MockLocalStorage {
+            constructor() {
+                this.store = {};
+            }
+            
+            getItem(key) {
+                return this.store[key] || null;
+            }
+            
+            setItem(key, value) {
+                this.store[key] = String(value);
+            }
+            
+            removeItem(key) {
+                delete this.store[key];
+            }
+            
+            clear() {
+                this.store = {};
+            }
+        }
+
+        // Replace localStorage with mock for testing
+        const originalLocalStorage = window.localStorage;
+        window.localStorage = new MockLocalStorage();
+
+        // Run tests
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Starting Habit Tracker Tests...');
+
+            // Test HabitTracker class initialization
+            test.describe('HabitTracker Initialization', () => {
+                test.it('should create a new HabitTracker instance', () => {
+                    const tracker = new HabitTracker();
+                    test.assertTrue(tracker instanceof HabitTracker, 'Should be instance of HabitTracker');
+                    test.assertArrayEquals(tracker.habits, [], 'Should start with empty habits array');
+                    test.assertEquals(tracker.currentScreen, 'track', 'Should start on track screen');
+                });
+
+                test.it('should load existing habits from localStorage', () => {
+                    const mockHabits = [
+                        { id: '1', name: 'Test Habit', frequency: 'daily', count: 1, completions: [] }
+                    ];
+                    localStorage.setItem('habits', JSON.stringify(mockHabits));
+                    
+                    const tracker = new HabitTracker();
+                    test.assertEquals(tracker.habits.length, 1, 'Should load existing habits');
+                    test.assertEquals(tracker.habits[0].name, 'Test Habit', 'Should load habit data correctly');
+                });
+            });
+
+            // Test habit management
+            test.describe('Habit Management', () => {
+                let tracker;
+
+                // Reset before each test
+                localStorage.clear();
+                tracker = new HabitTracker();
+
+                test.it('should add a new habit', () => {
+                    const initialCount = tracker.habits.length;
+                    
+                    // Mock form values
+                    document.getElementById('habit-name').value = 'Exercise';
+                    document.getElementById('habit-frequency').value = 'daily';
+                    document.getElementById('habit-count').value = '1';
+                    document.getElementById('habit-description').value = 'Daily workout';
+
+                    // Create a mock form event
+                    const mockEvent = {
+                        preventDefault: () => {}
+                    };
+
+                    tracker.addHabit(mockEvent);
+                    
+                    test.assertEquals(tracker.habits.length, initialCount + 1, 'Should add one habit');
+                    test.assertEquals(tracker.habits[0].name, 'Exercise', 'Should set correct name');
+                    test.assertEquals(tracker.habits[0].frequency, 'daily', 'Should set correct frequency');
+                    test.assertEquals(tracker.habits[0].count, 1, 'Should set correct count');
+                });
+
+                test.it('should delete a habit', () => {
+                    // Add a habit first
+                    tracker.habits = [
+                        { id: 'test-1', name: 'Test Habit', frequency: 'daily', count: 1, completions: [] }
+                    ];
+                    
+                    // Mock confirm to return true
+                    const originalConfirm = window.confirm;
+                    window.confirm = () => true;
+                    
+                    tracker.deleteHabit('test-1');
+                    
+                    test.assertEquals(tracker.habits.length, 0, 'Should remove the habit');
+                    
+                    // Restore confirm
+                    window.confirm = originalConfirm;
+                });
+
+                test.it('should not delete a habit when user cancels', () => {
+                    tracker.habits = [
+                        { id: 'test-1', name: 'Test Habit', frequency: 'daily', count: 1, completions: [] }
+                    ];
+                    
+                    // Mock confirm to return false
+                    const originalConfirm = window.confirm;
+                    window.confirm = () => false;
+                    
+                    tracker.deleteHabit('test-1');
+                    
+                    test.assertEquals(tracker.habits.length, 1, 'Should not remove the habit');
+                    
+                    // Restore confirm
+                    window.confirm = originalConfirm;
+                });
+            });
+
+            // Test habit completion logic
+            test.describe('Habit Completion Logic', () => {
+                let tracker;
+
+                localStorage.clear();
+                tracker = new HabitTracker();
+
+                test.it('should toggle habit completion', () => {
+                    const habit = {
+                        id: 'test-1',
+                        name: 'Test Habit',
+                        frequency: 'daily',
+                        count: 1,
+                        completions: []
+                    };
+                    tracker.habits = [habit];
+
+                    // Complete the habit
+                    tracker.toggleHabit('test-1');
+                    test.assertEquals(tracker.habits[0].completions.length, 1, 'Should add completion');
+
+                    // Toggle again to uncomplete
+                    tracker.toggleHabit('test-1');
+                    test.assertEquals(tracker.habits[0].completions.length, 0, 'Should remove completion');
+                });
+
+                test.it('should check if habit is completed today', () => {
+                    const habit = {
+                        id: 'test-1',
+                        name: 'Test Habit',
+                        frequency: 'daily',
+                        count: 1,
+                        completions: [
+                            { date: new Date().toISOString(), timestamp: Date.now() }
+                        ]
+                    };
+                    tracker.habits = [habit];
+
+                    const isCompleted = tracker.isHabitCompletedToday(habit);
+                    test.assertTrue(isCompleted, 'Should recognize today\'s completion');
+                });
+
+                test.it('should calculate habit progress correctly', () => {
+                    const habit = {
+                        id: 'test-1',
+                        name: 'Weekly Exercise',
+                        frequency: 'weekly',
+                        count: 3,
+                        completions: [
+                            { date: new Date().toISOString(), timestamp: Date.now() }
+                        ]
+                    };
+                    tracker.habits = [habit];
+
+                    const progress = tracker.getHabitProgress(habit);
+                    test.assertEquals(progress.required, 3, 'Should require 3 completions');
+                    test.assertTrue(progress.completed >= 0, 'Should have non-negative completions');
+                });
+            });
+
+            // Test period calculations
+            test.describe('Period Calculations', () => {
+                let tracker;
+
+                localStorage.clear();
+                tracker = new HabitTracker();
+
+                test.it('should calculate daily period start correctly', () => {
+                    const testDate = new Date('2024-01-15T15:30:00');
+                    const periodStart = tracker.getPeriodStart('daily', testDate);
+                    
+                    const expectedStart = new Date('2024-01-15T00:00:00');
+                    test.assertEquals(periodStart.toDateString(), expectedStart.toDateString(), 'Should start at beginning of day');
+                });
+
+                test.it('should calculate weekly period start correctly', () => {
+                    const testDate = new Date('2024-01-15T15:30:00'); // Monday
+                    const periodStart = tracker.getPeriodStart('weekly', testDate);
+                    
+                    test.assertTrue(periodStart <= testDate, 'Period start should be before or equal to test date');
+                    test.assertEquals(periodStart.getDay(), 0, 'Week should start on Sunday');
+                });
+
+                test.it('should calculate monthly period start correctly', () => {
+                    const testDate = new Date('2024-01-15T15:30:00');
+                    const periodStart = tracker.getPeriodStart('monthly', testDate);
+                    
+                    test.assertEquals(periodStart.getDate(), 1, 'Month should start on 1st');
+                    test.assertEquals(periodStart.getMonth(), testDate.getMonth(), 'Should be same month');
+                });
+
+                test.it('should get correct period names', () => {
+                    test.assertEquals(tracker.getPeriodName('daily'), 'day');
+                    test.assertEquals(tracker.getPeriodName('weekly'), 'week');
+                    test.assertEquals(tracker.getPeriodName('monthly'), 'month');
+                    test.assertEquals(tracker.getPeriodName('quarterly'), 'quarter');
+                    test.assertEquals(tracker.getPeriodName('yearly'), 'year');
+                });
+            });
+
+            // Test habit status determination
+            test.describe('Habit Status Logic', () => {
+                let tracker;
+
+                localStorage.clear();
+                tracker = new HabitTracker();
+
+                test.it('should identify on-track habits', () => {
+                    const habit = {
+                        id: 'test-1',
+                        name: 'Test Habit',
+                        frequency: 'daily',
+                        count: 1,
+                        completions: [
+                            { date: new Date().toISOString(), timestamp: Date.now() }
+                        ]
+                    };
+                    tracker.habits = [habit];
+
+                    const status = tracker.getHabitStatus(habit);
+                    test.assertEquals(status.type, 'on-track', 'Should be on track when requirement met');
+                });
+
+                test.it('should identify behind habits', () => {
+                    const habit = {
+                        id: 'test-1',
+                        name: 'Test Habit',
+                        frequency: 'daily',
+                        count: 1,
+                        completions: []
+                    };
+                    tracker.habits = [habit];
+
+                    const status = tracker.getHabitStatus(habit);
+                    test.assertEquals(status.type, 'behind', 'Should be behind when requirement not met');
+                });
+            });
+
+            // Test data persistence
+            test.describe('Data Persistence', () => {
+                let tracker;
+
+                localStorage.clear();
+                tracker = new HabitTracker();
+
+                test.it('should save habits to localStorage', () => {
+                    const testHabit = {
+                        id: 'test-1',
+                        name: 'Test Habit',
+                        frequency: 'daily',
+                        count: 1,
+                        completions: []
+                    };
+                    tracker.habits = [testHabit];
+                    
+                    tracker.saveHabits();
+                    
+                    const saved = JSON.parse(localStorage.getItem('habits'));
+                    test.assertEquals(saved.length, 1, 'Should save habit to localStorage');
+                    test.assertEquals(saved[0].name, 'Test Habit', 'Should save correct data');
+                });
+            });
+
+            // Test notification logic
+            test.describe('Notification System', () => {
+                let tracker;
+
+                localStorage.clear();
+                tracker = new HabitTracker();
+
+                test.it('should determine when to send notifications', () => {
+                    const habitId = 'test-1';
+                    const frequency = 'daily';
+                    
+                    // Should send notification when none sent before
+                    test.assertTrue(tracker.shouldSendNotification(habitId, frequency), 'Should send first notification');
+                    
+                    // Mark as sent
+                    tracker.markNotificationSent(habitId, frequency);
+                    
+                    // Should not send again on same day
+                    test.assertFalse(tracker.shouldSendNotification(habitId, frequency), 'Should not send duplicate notification');
+                });
+            });
+
+            // Test UI rendering (basic checks)
+            test.describe('UI Rendering', () => {
+                let tracker;
+
+                localStorage.clear();
+                tracker = new HabitTracker();
+
+                test.it('should render empty state correctly', () => {
+                    tracker.renderTrackScreen();
+                    const habitsList = document.getElementById('habits-list');
+                    test.assertTrue(habitsList.innerHTML.includes('No habits yet'), 'Should show empty state message');
+                });
+
+                test.it('should render habits management screen', () => {
+                    tracker.renderHabitsScreen();
+                    const managementList = document.getElementById('manage-habits-list');
+                    test.assertTrue(managementList.innerHTML.includes('No habits defined'), 'Should show empty habits message');
+                });
+
+                test.it('should render dashboard with stats', () => {
+                    tracker.renderDashboard();
+                    const totalHabits = document.getElementById('total-habits');
+                    test.assertEquals(totalHabits.textContent, '0', 'Should show correct total habits count');
+                });
+            });
+
+            console.log('All tests completed!');
+            
+            // Show final results
+            setTimeout(() => {
+                const totalTests = test.passed + test.failed;
+                const passRate = totalTests > 0 ? Math.round((test.passed / totalTests) * 100) : 0;
+                console.log(`Test Summary: ${test.passed}/${totalTests} tests passed (${passRate}%)`);
+                
+                if (test.failed > 0) {
+                    console.error(`${test.failed} tests failed. Check the results above for details.`);
+                } else {
+                    console.log('All tests passed! 🎉');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
