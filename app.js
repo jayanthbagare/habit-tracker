@@ -1,15 +1,8 @@
-// Test logging at the very start
-alert('JavaScript is running!');
-console.log('=== APP.JS LOADED ===');
-console.log('Current time:', new Date());
-console.log('Location:', window.location.href);
-window.testMessage = 'JavaScript loaded successfully';
+// JavaScript is working properly
 
 class HabitTracker {
     constructor() {
-        console.log('HabitTracker constructor called');
         this.habits = this.loadHabitsSecurely();
-        console.log('Loaded habits:', this.habits.length);
         this.currentScreen = 'track';
         
         // Bind methods to preserve 'this' context
@@ -17,20 +10,14 @@ class HabitTracker {
         this.renderCurrentScreen = this.renderCurrentScreen.bind(this);
         this.saveHabits = this.saveHabits.bind(this);
         
-        console.log('About to call init()');
         this.init();
-        console.log('Constructor completed');
     }
 
     init() {
-        console.log('init() called');
         this.setupEventListeners();
-        console.log('setupEventListeners completed');
         this.renderCurrentScreen();
-        console.log('renderCurrentScreen completed');
         this.setupNotifications();
         this.scheduleNotificationChecks();
-        console.log('init() completed');
     }
 
     setupEventListeners() {
@@ -102,50 +89,34 @@ class HabitTracker {
     }
 
     renderTrackScreen() {
-        console.log('renderTrackScreen called');
         const habitsList = document.getElementById('habits-list');
-        console.log('Found habits-list element:', !!habitsList);
-        console.log('Total habits loaded:', this.habits.length);
-        console.log('All habits:', this.habits.map(h => ({ name: h.name, id: h.id, frequency: h.frequency })));
         
         if (this.habits.length === 0) {
-            console.log('No habits found, showing empty state');
             habitsList.innerHTML = '<p class="empty-state">No habits yet. Add some habits to get started!</p>';
             return;
         }
 
         const today = new Date();
-        console.log('Today:', today);
-        const todayHabits = this.habits.filter(habit => {
-            const isDue = this.isHabitDueToday(habit, today);
-            console.log(`Habit "${habit.name}" due today:`, isDue);
-            return isDue;
-        });
-        console.log('Habits due today:', todayHabits.length);
+        const todayHabits = this.habits.filter(habit => this.isHabitDueToday(habit, today));
 
         if (todayHabits.length === 0) {
-            console.log('No habits due today, showing empty state');
             habitsList.innerHTML = '<p class="empty-state">No habits due today. Great job!</p>';
             return;
         }
 
-        console.log('Rendering', todayHabits.length, 'habits for today');
         habitsList.innerHTML = '';
         todayHabits.forEach(habit => {
-            console.log('Rendering habit:', habit.name);
             const habitElement = this.renderHabitItem(habit);
             habitsList.appendChild(habitElement);
         });
     }
 
     renderHabitItem(habit) {
-        console.log('renderHabitItem called for habit:', habit.name, 'ID:', habit.id);
         const progress = this.getHabitProgress(habit);
         const status = this.getHabitStatus(habit);
         const isCompletedToday = this.isHabitCompletedToday(habit);
         const habitElement = document.createElement('div');
         habitElement.className = 'habit-item';
-        console.log('Created habit element for:', habit.name);
         
         habitElement.innerHTML = `
             <div class="habit-header">
@@ -172,27 +143,13 @@ class HabitTracker {
         const clickHandler = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Button clicked, habit ID:', habit.id);
-            try {
-                this.toggleHabit(habit.id);
-            } catch (error) {
-                console.error('Error in toggleHabit:', error);
-            }
+            this.toggleHabit(habit.id);
         };
         
         toggleButton.addEventListener('click', clickHandler);
         toggleButton.onclick = clickHandler;
         
-        const progressElement = habitElement.querySelector('.habit-progress');
-        console.log('Found progress element:', !!progressElement);
-        console.log('About to append toggle button for habit:', habit.name);
-        
-        if (progressElement) {
-            progressElement.appendChild(toggleButton);
-            console.log('Toggle button appended for habit:', habit.name);
-        } else {
-            console.error('Could not find .habit-progress element for habit:', habit.name);
-        }
+        habitElement.querySelector('.habit-progress').appendChild(toggleButton);
         
         return habitElement;
     }
@@ -445,13 +402,8 @@ class HabitTracker {
     }
 
     toggleHabit(id) {
-        console.log('toggleHabit called with id:', id);
         const habit = this.habits.find(h => h.id === id);
-        if (!habit) {
-            console.error('Habit not found:', id);
-            return;
-        }
-        console.log('Found habit:', habit.name);
+        if (!habit) return;
 
         const today = new Date().toDateString();
         const existingIndex = habit.completions.findIndex(c => 
@@ -700,30 +652,13 @@ class HabitTracker {
 // Initialize the app
 let habitTracker;
 
-console.log('=== INITIALIZATION SECTION ===');
-console.log('Script loaded, document.readyState:', document.readyState);
-
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('=== DOMContentLoaded event fired ===');
-    try {
-        habitTracker = new HabitTracker();
-        console.log('=== HabitTracker instance created successfully ===');
-    } catch (error) {
-        console.error('=== ERROR creating HabitTracker ===', error);
-    }
+    habitTracker = new HabitTracker();
 });
 
 // Fallback initialization
-if (document.readyState === 'loading') {
-    console.log('Document still loading, waiting for DOMContentLoaded');
-} else {
-    console.log('=== Document already loaded, initializing immediately ===');
-    try {
-        habitTracker = new HabitTracker();
-        console.log('=== Fallback HabitTracker created successfully ===');
-    } catch (error) {
-        console.error('=== ERROR in fallback initialization ===', error);
-    }
+if (document.readyState !== 'loading') {
+    habitTracker = new HabitTracker();
 }
 
 // Service worker for offline functionality
