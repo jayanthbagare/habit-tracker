@@ -84,13 +84,13 @@ export async function deleteHabit(id) {
 }
 
 // Habit log operations
-export async function logHabit(habitId, notes = '') {
+export async function logHabit(habitId, notes = '', completedDate = new Date()) {
   const logs = getFromStorage(LOGS_KEY)
   const newLog = {
     id: generateId(),
     habit_id: habitId,
     notes,
-    completed_at: new Date().toISOString(),
+    completed_at: completedDate.toISOString(),
     created_at: new Date().toISOString()
   }
   

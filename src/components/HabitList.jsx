@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Check, Clock, Target, TrendingUp, TrendingDown, Undo2 } from 'lucide-react'
+import { Plus, Check, Clock, Target, TrendingUp, TrendingDown, Undo2, Calendar } from 'lucide-react'
 import { getHabits, logHabit, unlogHabit, getAllHabitsProgress } from '../lib/localStorage'
 import { format, startOfDay, endOfDay } from 'date-fns'
 import Logo from './Logo'
+import DatePickerModal from './DatePickerModal'
 
 export default function HabitList() {
   const navigate = useNavigate()
@@ -12,6 +13,8 @@ export default function HabitList() {
   const [loading, setLoading] = useState(true)
   const [loggingHabit, setLoggingHabit] = useState(null)
   const [unloggingHabit, setUnloggingHabit] = useState(null)
+  const [datePickerModal, setDatePickerModal] = useState({ isOpen: false, habit: null })
+  const longPressTimer = useRef(null)
 
   useEffect(() => {
     loadHabitsAndProgress()
@@ -32,12 +35,12 @@ export default function HabitList() {
     }
   }
 
-  const handleLogHabit = async (habitId) => {
+  const handleLogHabit = async (habitId, completedDate = new Date()) => {
     if (loggingHabit === habitId) return
     
     setLoggingHabit(habitId)
     try {
-      await logHabit(habitId)
+      await logHabit(habitId, '', completedDate)
       await loadHabitsAndProgress() // Refresh data
     } catch (error) {
       console.error('Error logging habit:', error)
@@ -45,6 +48,25 @@ export default function HabitList() {
     } finally {
       setLoggingHabit(null)
     }
+  }
+
+  const handleLongPressStart = (habit) => {
+    longPressTimer.current = setTimeout(() => {
+      setDatePickerModal({ isOpen: true, habit })
+    }, 800) // 800ms long press
+  }
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+    }
+  }
+
+  const handleDatePickerConfirm = (selectedDate) => {
+    if (datePickerModal.habit) {
+      handleLogHabit(datePickerModal.habit.id, selectedDate)
+    }
+    setDatePickerModal({ isOpen: false, habit: null })
   }
 
   const handleUnlogHabit = async (habitId) => {
@@ -178,17 +200,29 @@ export default function HabitList() {
                         className={getProgressColor(progress)}
                       />
                       
-                      <button
-                        onClick={() => handleLogHabit(habit.id)}
-                        disabled={isLogging}
-                        className="flex items-center justify-center w-12 h-12 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-xl transition-colors tap-highlight-none"
-                      >
-                        {isLogging ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Check size={20} />
-                        )}
-                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => handleLogHabit(habit.id)}
+                          onTouchStart={() => handleLongPressStart(habit)}
+                          onTouchEnd={handleLongPressEnd}
+                          onMouseDown={() => handleLongPressStart(habit)}
+                          onMouseUp={handleLongPressEnd}
+                          onMouseLeave={handleLongPressEnd}
+                          disabled={isLogging}
+                          className="flex items-center justify-center w-12 h-12 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-xl transition-colors tap-highlight-none relative"
+                        >
+                          {isLogging ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Check size={20} />
+                          )}
+                        </button>
+                        
+                        {/* Long press hint */}
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                          <Calendar size={10} className="text-white" />
+                        </div>
+                      </div>
 
                       {todayLogCount > 0 && (
                         <button
@@ -255,6 +289,13 @@ export default function HabitList() {
           })
         )}
       </div>
+
+      <DatePickerModal
+        isOpen={datePickerModal.isOpen}
+        onClose={() => setDatePickerModal({ isOpen: false, habit: null })}
+        onConfirm={handleDatePickerConfirm}
+        habitTitle={datePickerModal.habit?.title || ''}
+      />
     </div>
   )
 }
