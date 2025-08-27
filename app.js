@@ -1,3 +1,8 @@
+// Test logging at the very start
+console.log('=== APP.JS LOADED ===');
+console.log('Current time:', new Date());
+console.log('Location:', window.location.href);
+
 class HabitTracker {
     constructor() {
         console.log('HabitTracker constructor called');
@@ -693,20 +698,30 @@ class HabitTracker {
 // Initialize the app
 let habitTracker;
 
+console.log('=== INITIALIZATION SECTION ===');
 console.log('Script loaded, document.readyState:', document.readyState);
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded event fired');
-    habitTracker = new HabitTracker();
-    console.log('HabitTracker instance created');
+    console.log('=== DOMContentLoaded event fired ===');
+    try {
+        habitTracker = new HabitTracker();
+        console.log('=== HabitTracker instance created successfully ===');
+    } catch (error) {
+        console.error('=== ERROR creating HabitTracker ===', error);
+    }
 });
 
 // Fallback initialization
 if (document.readyState === 'loading') {
     console.log('Document still loading, waiting for DOMContentLoaded');
 } else {
-    console.log('Document already loaded, initializing immediately');
-    habitTracker = new HabitTracker();
+    console.log('=== Document already loaded, initializing immediately ===');
+    try {
+        habitTracker = new HabitTracker();
+        console.log('=== Fallback HabitTracker created successfully ===');
+    } catch (error) {
+        console.error('=== ERROR in fallback initialization ===', error);
+    }
 }
 
 // Service worker for offline functionality
