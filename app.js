@@ -87,23 +87,37 @@ class HabitTracker {
     }
 
     renderTrackScreen() {
+        console.log('renderTrackScreen called');
         const habitsList = document.getElementById('habits-list');
+        console.log('Found habits-list element:', !!habitsList);
+        console.log('Total habits loaded:', this.habits.length);
+        console.log('All habits:', this.habits.map(h => ({ name: h.name, id: h.id, frequency: h.frequency })));
         
         if (this.habits.length === 0) {
+            console.log('No habits found, showing empty state');
             habitsList.innerHTML = '<p class="empty-state">No habits yet. Add some habits to get started!</p>';
             return;
         }
 
         const today = new Date();
-        const todayHabits = this.habits.filter(habit => this.isHabitDueToday(habit, today));
+        console.log('Today:', today);
+        const todayHabits = this.habits.filter(habit => {
+            const isDue = this.isHabitDueToday(habit, today);
+            console.log(`Habit "${habit.name}" due today:`, isDue);
+            return isDue;
+        });
+        console.log('Habits due today:', todayHabits.length);
 
         if (todayHabits.length === 0) {
+            console.log('No habits due today, showing empty state');
             habitsList.innerHTML = '<p class="empty-state">No habits due today. Great job!</p>';
             return;
         }
 
+        console.log('Rendering', todayHabits.length, 'habits for today');
         habitsList.innerHTML = '';
         todayHabits.forEach(habit => {
+            console.log('Rendering habit:', habit.name);
             const habitElement = this.renderHabitItem(habit);
             habitsList.appendChild(habitElement);
         });
