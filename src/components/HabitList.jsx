@@ -187,109 +187,110 @@ export default function HabitList() {
         ) : (
           habits.map((habit) => {
             const progress = getProgressForHabit(habit.id)
-            const ProgressIcon = getProgressIcon(progress)
             const isLogging = loggingHabit === habit.id
             const isUnlogging = unloggingHabit === habit.id
             const isDeleting = deletingHabit === habit.id
             const isExpanded = expandedHabit === habit.id
             const todayLogCount = getTodayLogCount(habit.id, progress.logs || [])
             
-            return (
-              <div
-                key={habit.id}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden"
-              >
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0 pr-3">
-                      <div className="flex items-center justify-between">
-                        <button
-                          onClick={() => toggleHabitExpanded(habit.id)}
-                          className="flex-1 text-left tap-highlight-none"
-                        >
-                          <h3 className="font-medium text-gray-900 leading-5 mb-1">
-                            {habit.title}
-                          </h3>
-                        </button>
-                        {isExpanded && (
-                          <button
-                            onClick={() => setExpandedHabit(null)}
-                            className="p-1 text-gray-400 hover:text-gray-600 tap-highlight-none"
-                          >
-                            <X size={16} />
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-3 text-xs text-gray-500">
+            // Simple button view (default)
+            if (!isExpanded) {
+              return (
+                <button
+                  key={habit.id}
+                  onClick={() => handleLogHabit(habit.id)}
+                  onTouchStart={() => handleLongPressStart(habit)}
+                  onTouchEnd={handleLongPressEnd}
+                  onMouseDown={() => handleLongPressStart(habit)}
+                  onMouseUp={handleLongPressEnd}
+                  onMouseLeave={handleLongPressEnd}
+                  disabled={isLogging}
+                  className={`w-full p-6 text-left rounded-xl border-2 transition-all duration-200 tap-highlight-none ${
+                    todayLogCount > 0
+                      ? 'bg-green-50 border-green-200 text-green-900'
+                      : progress.isOnTrack
+                      ? 'bg-blue-50 border-blue-200 text-blue-900'
+                      : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'
+                  } disabled:opacity-60`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-1">{habit.title}</h3>
+                      <div className="flex items-center space-x-3 text-sm opacity-75">
                         <span>{getFrequencyDisplay(habit)}</span>
-                        {progress.completedCount !== undefined && (
-                          <span>
-                            {progress.completedCount}/{progress.requiredCount} done
-                          </span>
-                        )}
                         {todayLogCount > 0 && (
-                          <span className="text-green-600 font-medium">✓ {todayLogCount}x today</span>
+                          <span className="font-medium">✓ {todayLogCount}x today</span>
                         )}
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <ProgressIcon 
-                        size={16} 
-                        className={getProgressColor(progress)}
-                      />
-                      
-                      <div className="relative">
-                        <button
-                          onClick={() => handleLogHabit(habit.id)}
-                          onTouchStart={() => handleLongPressStart(habit)}
-                          onTouchEnd={handleLongPressEnd}
-                          onMouseDown={() => handleLongPressStart(habit)}
-                          onMouseUp={handleLongPressEnd}
-                          onMouseLeave={handleLongPressEnd}
-                          disabled={isLogging}
-                          className="flex items-center justify-center w-12 h-12 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-xl transition-colors tap-highlight-none relative"
-                        >
-                          {isLogging ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Check size={20} />
-                          )}
-                        </button>
-                        
-                        {/* Long press hint */}
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                          <Calendar size={10} className="text-white" />
+                    <div className="flex items-center">
+                      {isLogging ? (
+                        <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : todayLogCount > 0 ? (
+                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                          <Check size={18} className="text-white" />
                         </div>
-                      </div>
-
+                      ) : (
+                        <div className="w-8 h-8 border-2 border-current rounded-full flex items-center justify-center opacity-30">
+                          <Check size={18} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              )
+            }
+            
+            // Detailed view (expanded)
+            return (
+              <div
+                key={habit.id}
+                className="bg-white rounded-xl border-2 border-blue-200 overflow-hidden"
+              >
+                <div className="p-4 bg-blue-50 border-b border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-blue-900">{habit.title}</h3>
+                    <button
+                      onClick={() => setExpandedHabit(null)}
+                      className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg tap-highlight-none"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  {habit.description && (
+                    <p className="text-sm text-blue-700 mt-2">{habit.description}</p>
+                  )}
+                </div>
+                
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-gray-600">
+                      <span>{getFrequencyDisplay(habit)}</span>
+                      {progress.completedCount !== undefined && (
+                        <span className="ml-3">
+                          {progress.completedCount}/{progress.requiredCount} done this period
+                        </span>
+                      )}
                       {todayLogCount > 0 && (
-                        <button
-                          onClick={() => handleUnlogHabit(habit.id)}
-                          disabled={isUnlogging}
-                          className="flex items-center justify-center w-12 h-12 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-xl transition-colors tap-highlight-none"
-                        >
-                          {isUnlogging ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Undo2 size={18} />
-                          )}
-                        </button>
+                        <span className="ml-3 text-green-600 font-medium">
+                          ✓ {todayLogCount}x today
+                        </span>
                       )}
                     </div>
                   </div>
 
                   {progress.progressPercentage !== undefined && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-gray-600">
+                    <div className="mb-4">
+                      <div className="flex justify-between text-sm text-gray-600 mb-2">
                         <span>Progress this period</span>
-                        <span className={getProgressColor(progress)}>
+                        <span className={`font-medium ${getProgressColor(progress)}`}>
                           {Math.round(progress.progressPercentage)}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 rounded-full h-3">
                         <div
-                          className={`h-2 rounded-full transition-all duration-300 ${
+                          className={`h-3 rounded-full transition-all duration-300 ${
                             progress.isOnTrack
                               ? 'bg-green-500'
                               : progress.progressPercentage >= 50
@@ -301,80 +302,78 @@ export default function HabitList() {
                       </div>
                     </div>
                   )}
-                </div>
-
-                {progress.logs && progress.logs.length > 0 && !isExpanded && (
-                  <div className="px-4 pb-4">
-                    <div className="text-xs text-gray-500 mb-2">Recent completions:</div>
-                    <div className="flex flex-wrap gap-1">
-                      {progress.logs.slice(0, 5).map((log, index) => (
-                        <span
-                          key={log.id}
-                          className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md"
-                        >
-                          {format(new Date(log.completed_at), 'MMM d')}
-                        </span>
-                      ))}
-                      {progress.logs.length > 5 && (
-                        <span className="px-2 py-1 text-gray-500 text-xs">
-                          +{progress.logs.length - 5} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {isExpanded && (
-                  <div className="px-4 pb-4 border-t border-gray-100 pt-4">
-                    <div className="space-y-3">
-                      {habit.description && (
-                        <div>
-                          <div className="text-xs font-medium text-gray-700 mb-1">Description:</div>
-                          <div className="text-sm text-gray-600">{habit.description}</div>
+                  
+                  <div className="flex space-x-3 mb-4">
+                    <button
+                      onClick={() => handleLogHabit(habit.id)}
+                      disabled={isLogging}
+                      className="flex-1 py-3 px-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors tap-highlight-none"
+                    >
+                      {isLogging ? (
+                        <div className="flex items-center justify-center">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          Logging...
                         </div>
+                      ) : (
+                        'Mark as Done'
                       )}
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs font-medium text-gray-700">Actions:</div>
-                        <button
-                          onClick={() => handleDeleteHabit(habit.id)}
-                          disabled={isDeleting}
-                          className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors tap-highlight-none disabled:opacity-50"
-                        >
-                          {isDeleting ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                              <span>Deleting...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Trash2 size={16} />
-                              <span>Delete Habit</span>
-                            </>
-                          )}
-                        </button>
+                    </button>
+                    
+                    {todayLogCount > 0 && (
+                      <button
+                        onClick={() => handleUnlogHabit(habit.id)}
+                        disabled={isUnlogging}
+                        className="px-4 py-3 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors tap-highlight-none"
+                      >
+                        {isUnlogging ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Undo2 size={16} />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  
+                  {progress.logs && progress.logs.length > 0 && (
+                    <div className="mb-4">
+                      <div className="text-sm font-medium text-gray-700 mb-2">
+                        Recent completions ({progress.logs.length} total)
                       </div>
-                      
-                      {progress.logs && progress.logs.length > 0 && (
-                        <div>
-                          <div className="text-xs font-medium text-gray-700 mb-2">All completions ({progress.logs.length}):</div>
-                          <div className="max-h-32 overflow-y-auto space-y-1">
-                            {progress.logs.map((log) => (
-                              <div key={log.id} className="flex justify-between items-center py-1">
-                                <span className="text-sm text-gray-600">
-                                  {format(new Date(log.completed_at), 'EEE, MMM d, yyyy')}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {format(new Date(log.completed_at), 'h:mm a')}
-                                </span>
-                              </div>
-                            ))}
+                      <div className="max-h-32 overflow-y-auto space-y-1">
+                        {progress.logs.slice(0, 10).map((log) => (
+                          <div key={log.id} className="flex justify-between items-center py-1 text-sm">
+                            <span className="text-gray-700">
+                              {format(new Date(log.completed_at), 'EEE, MMM d, yyyy')}
+                            </span>
+                            <span className="text-gray-500">
+                              {format(new Date(log.completed_at), 'h:mm a')}
+                            </span>
                           </div>
-                        </div>
-                      )}
+                        ))}
+                      </div>
                     </div>
+                  )}
+                  
+                  <div className="pt-3 border-t border-gray-200">
+                    <button
+                      onClick={() => handleDeleteHabit(habit.id)}
+                      disabled={isDeleting}
+                      className="w-full flex items-center justify-center space-x-2 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors tap-highlight-none disabled:opacity-50"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                          <span>Deleting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 size={16} />
+                          <span>Delete Habit</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             )
           })
